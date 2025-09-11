@@ -1,0 +1,7 @@
+apiVersion: v2
+name: snake-game
+description: A simple static Snake game served by nginx
+type: application
+version: 0.1.0
+appVersion: "1.0.0"
+
