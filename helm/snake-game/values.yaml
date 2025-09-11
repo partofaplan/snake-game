@@ -1,5 +1,5 @@
 image:
-  repository: snake-game
+  repository: partofaplan/snake-game
   tag: latest
   pullPolicy: IfNotPresent
 
