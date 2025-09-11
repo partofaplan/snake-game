@@ -1,0 +1,103 @@
+:root {
+  --bg: #0f1220;
+  --panel: #16192b;
+  --ink: #e6e7ed;
+  --muted: #a6aac0;
+  --accent: #5dd693;
+  --accent-2: #ffd166;
+  --danger: #ff6b6b;
+}
+
+* { box-sizing: border-box; }
+html, body { height: 100%; }
+body {
+  margin: 0;
+  font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+  color: var(--ink);
+  background: radial-gradient(1200px 800px at 20% 0%, #141735, var(--bg));
+}
+
+.wrap {
+  max-width: 860px;
+  margin: 0 auto;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
+  gap: 16px;
+}
+
+.bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+h1 {
+  font-size: 20px;
+  margin: 0;
+  letter-spacing: 0.3px;
+}
+
+.stats { display: flex; gap: 16px; }
+.stat { display: flex; gap: 8px; align-items: baseline; }
+.stat .label { color: var(--muted); font-size: 12px; text-transform: uppercase; letter-spacing: 0.8px; }
+.stat span:last-child { font-weight: 600; }
+
+.game {
+  position: relative;
+  display: grid;
+  place-items: center;
+}
+
+#board {
+  width: min(90vw, 640px);
+  height: min(90vw, 640px);
+  background: linear-gradient(0deg, #111426, #0d1020);
+  border: 2px solid #242845;
+  border-radius: 8px;
+  box-shadow: 0 10px 40px rgba(0,0,0,0.35), inset 0 0 0 1px rgba(255,255,255,0.04);
+}
+
+.overlay {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+}
+
+.panel {
+  background: var(--panel);
+  border: 1px solid #2a2f52;
+  border-radius: 10px;
+  padding: 20px 22px;
+  max-width: 420px;
+  width: 100%;
+  text-align: center;
+  box-shadow: 0 10px 40px rgba(0,0,0,0.35);
+}
+
+.help { list-style: none; padding: 0; margin: 12px 0 18px; color: var(--muted); }
+.help li { margin: 4px 0; }
+
+.btn {
+  background: var(--accent);
+  color: #0b0e18;
+  font-weight: 700;
+  border: none;
+  border-radius: 8px;
+  padding: 10px 14px;
+  cursor: pointer;
+}
+
+.btn-small { padding: 6px 10px; font-size: 12px; }
+.btn:active { transform: translateY(1px); }
+
+.foot { opacity: 0.9; }
+.controls { display: flex; gap: 8px; }
+
+.hide { display: none !important; }
+.accent { color: var(--accent-2); }
+.danger { color: var(--danger); }
+

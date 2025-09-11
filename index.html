@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Snake vs Rats</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <div class="wrap">
+      <header class="bar">
+        <h1>Snake vs Rats</h1>
+        <div class="stats">
+          <div class="stat"><span class="label">Score</span><span id="score">0</span></div>
+          <div class="stat"><span class="label">Best</span><span id="best">0</span></div>
+        </div>
+      </header>
+
+      <main class="game">
+        <canvas id="board" width="640" height="640" aria-label="Game board" role="img"></canvas>
+        <div class="overlay" id="overlay">
+          <div class="panel" id="panel">
+            <h2 id="state-title">Snake vs Rats</h2>
+            <p id="state-sub">Eat rats to grow. Don’t hit yourself or the wall.</p>
+            <ul class="help">
+              <li>Move: Arrow Keys / WASD</li>
+              <li>Pause/Resume: Space</li>
+              <li>Restart: R</li>
+            </ul>
+            <button id="start-btn" class="btn">Start</button>
+          </div>
+        </div>
+      </main>
+
+      <footer class="bar foot">
+        <span>Have fun! 🐍🐀</span>
+        <div class="controls">
+          <button id="pause-btn" class="btn btn-small">Pause</button>
+          <button id="restart-btn" class="btn btn-small">Restart</button>
+        </div>
+      </footer>
+    </div>
+
+    <script src="main.js"></script>
+  </body>
+  </html>
+
