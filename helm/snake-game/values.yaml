@@ -18,6 +18,11 @@ ingress:
       paths:
         - path: /
           pathType: Prefix
+    # Expose via sslip.io so others on LAN can resolve to 192.168.5.78
+    - host: snake.192.168.5.78.sslip.io
+      paths:
+        - path: /
+          pathType: Prefix
   tls: []
   # Example:
   # tls:
