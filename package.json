@@ -1,0 +1,14 @@
+{
+  "name": "snake-game",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Static Snake game with a simple dev server",
+  "license": "UNLICENSED",
+  "scripts": {
+    "dev": "http-server -c-1 -p ${PORT:-5173} ."
+  },
+  "devDependencies": {
+    "http-server": "^14.1.1"
+  }
+}
+

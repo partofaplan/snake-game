@@ -1,17 +1,20 @@
-FROM nginx:1.27-alpine
+FROM busybox:1.36
 
-# Copy a minimal nginx config (gzip + static hosting) and app assets
-COPY nginx.conf /etc/nginx/conf.d/default.conf
-COPY index.html /usr/share/nginx/html/index.html
-COPY style.css /usr/share/nginx/html/style.css
-COPY main.js /usr/share/nginx/html/main.js
+# App assets
+COPY index.html /usr/share/www/index.html
+COPY style.css /usr/share/www/style.css
+COPY main.js /usr/share/www/main.js
 
-# Run as non-root (uid 101 is the nginx user on alpine)
-RUN chown -R 101:0 /var/cache/nginx /var/run /usr/share/nginx/html /etc/nginx/conf.d \
-  && chmod -R g=u /var/cache/nginx /var/run /usr/share/nginx/html /etc/nginx/conf.d
-USER 101
-
+# Default port for Cloud Run
+ENV PORT=8080
 EXPOSE 8080
 
+# Run as non-root
+USER 65532:65532
+
+# Healthcheck
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s \
-  CMD wget -qO- http://localhost:8080/ >/dev/null 2>&1 || exit 1
+  CMD wget -q -O- http://127.0.0.1:${PORT}/ >/dev/null 2>&1 || exit 1
+
+# Start a minimal static file server
+CMD ["sh", "-c", "busybox httpd -f -v -p ${PORT:-8080} -h /usr/share/www"]
