@@ -5,10 +5,6 @@
   "description": "Static Snake game with a simple dev server",
   "license": "UNLICENSED",
   "scripts": {
-    "dev": "http-server -c-1 -p ${PORT:-5173} ."
-  },
-  "devDependencies": {
-    "http-server": "^14.1.1"
+    "dev": "npm exec -y -- http-server -p ${PORT:-5173} -c -1 ."
   }
 }
-
