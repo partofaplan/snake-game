@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Snake Controller</title>
+    <link rel="stylesheet" href="style.css" />
+    <style>
+      body { background:#0b0f1f; color:#e8eefc; font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, sans-serif; }
+      .ctrl-wrap { max-width: 480px; margin: 24px auto; padding: 16px; }
+      .code { font-weight: 600; font-size: 20px; letter-spacing: 2px; }
+      .pad { margin: 24px auto; width: 260px; height: 260px; position: relative; }
+      .pad button { position:absolute; width: 90px; height: 90px; border-radius: 16px; border: 0; background:#1a2040; color:#e8eefc; font-weight:600; box-shadow: 0 2px 8px rgba(0,0,0,0.3); }
+      .pad button:active { transform: scale(0.98); }
+      .up { left: 85px; top: 0; }
+      .down { left: 85px; bottom: 0; }
+      .left { left: 0; top: 85px; }
+      .right { right: 0; top: 85px; }
+      .row { display:flex; gap: 8px; margin-top: 12px; }
+      .btn { padding: 10px 14px; border-radius: 10px; border: 0; background: #2563eb; color: white; font-weight:600; }
+      .btn:active { transform: scale(0.98); }
+      .status { margin-top: 8px; opacity: 0.8; }
+      input { padding: 10px 12px; border-radius: 10px; border:1px solid #25305a; background:#0f1327; color:#e8eefc; }
+    </style>
+  </head>
+  <body>
+    <div class="ctrl-wrap">
+      <h2>Snake Controller</h2>
+      <div>
+        <label for="code">Session Code</label>
+        <div class="row"><input id="code" maxlength="6" placeholder="ABC123" /> <button id="join" class="btn">Join</button></div>
+        <div class="status" id="status">Not connected</div>
+      </div>
+      <div style="margin-top:16px">
+        <button id="ready" class="btn">Ready</button>
+      </div>
+      <div class="pad" id="pad" style="display:none">
+        <button class="up">▲</button>
+        <button class="down">▼</button>
+        <button class="left">◀</button>
+        <button class="right">▶</button>
+      </div>
+    </div>
+
+    <script>
+      const qs = new URLSearchParams(location.search);
+      const codeInput = document.getElementById('code');
+      const statusEl = document.getElementById('status');
+      const joinBtn = document.getElementById('join');
+      const readyBtn = document.getElementById('ready');
+      const pad = document.getElementById('pad');
+
+      let ws; let code; let slot;
+
+      function wsUrl() {
+        const proto = location.protocol === 'https:' ? 'wss' : 'ws';
+        return `${proto}://${location.host}/ws`;
+      }
+
+      function connect() {
+        if (!code) return;
+        ws = new WebSocket(wsUrl());
+        ws.onopen = () => {
+          ws.send(JSON.stringify({ type: 'join', code }));
+        };
+        ws.onmessage = (ev) => {
+          const msg = JSON.parse(ev.data);
+          if (msg.type === 'joined') {
+            slot = msg.as;
+            statusEl.textContent = `Joined as ${slot}`;
+            pad.style.display = 'block';
+          } else if (msg.type === 'error') {
+            statusEl.textContent = `Error: ${msg.error}`;
+          }
+        };
+        ws.onclose = () => { statusEl.textContent = 'Disconnected'; };
+      }
+
+      function sendDir(x, y) {
+        if (!ws || ws.readyState !== 1 || !slot) return;
+        ws.send(JSON.stringify({ type: 'dir', code, player: slot, dir: { x, y } }));
+      }
+
+      function sendReady() {
+        if (!ws || ws.readyState !== 1) return;
+        ws.send(JSON.stringify({ type: 'ready', code }));
+        readyBtn.disabled = true;
+        readyBtn.textContent = 'Ready ✓';
+      }
+
+      codeInput.value = (qs.get('code') || '').toUpperCase();
+      if (codeInput.value) { code = codeInput.value; connect(); }
+
+      joinBtn.onclick = () => { code = codeInput.value.trim().toUpperCase(); connect(); };
+      readyBtn.onclick = sendReady;
+
+      // Touch controls
+      pad.addEventListener('touchstart', (e) => {
+        const t = e.target;
+        if (t.classList.contains('up')) sendDir(0, -1);
+        if (t.classList.contains('down')) sendDir(0, 1);
+        if (t.classList.contains('left')) sendDir(-1, 0);
+        if (t.classList.contains('right')) sendDir(1, 0);
+      }, { passive: true });
+    </script>
+  </body>
+  </html>
+

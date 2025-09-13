@@ -25,6 +25,22 @@
           <div class="panel" id="panel">
             <h2 id="state-title">Snake vs Rats</h2>
             <p id="state-sub">Eat rats to grow. Don’t hit yourself or the wall.</p>
+            <div id="mode-select">
+              <p>Choose mode:</p>
+              <div style="display:flex; gap:8px; flex-wrap:wrap;">
+                <button id="single-btn" class="btn">Single Player</button>
+                <button id="two-btn" class="btn">Two Player</button>
+              </div>
+            </div>
+            <div id="two-setup" class="hide">
+              <p>Session code: <strong id="sess-code">------</strong></p>
+              <p>On phones, open <code id="join-url"></code> and enter the code, or go to <code>/controller.html?code=CODE</code>.</p>
+              <ul class="help">
+                <li><span id="p1-status">P1: not connected</span></li>
+                <li><span id="p2-status">P2: not connected</span></li>
+              </ul>
+              <button id="wait-ready" class="btn" disabled>Waiting for both players…</button>
+            </div>
             <ul class="help">
               <li>Move: Arrow Keys / WASD</li>
               <li>Pause/Resume: Space</li>
@@ -47,4 +63,3 @@
     <script src="main.js"></script>
   </body>
   </html>
-

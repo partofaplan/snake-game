@@ -11,30 +11,48 @@
   const titleEl = document.getElementById('state-title');
   const subEl = document.getElementById('state-sub');
   const startBtn = document.getElementById('start-btn');
+  const singleBtn = document.getElementById('single-btn');
+  const twoBtn = document.getElementById('two-btn');
+  const modeSelect = document.getElementById('mode-select');
+  const twoSetup = document.getElementById('two-setup');
+  const sessCodeEl = document.getElementById('sess-code');
+  const joinUrlEl = document.getElementById('join-url');
+  const p1StatusEl = document.getElementById('p1-status');
+  const p2StatusEl = document.getElementById('p2-status');
+  const waitReadyBtn = document.getElementById('wait-ready');
   const pauseBtn = document.getElementById('pause-btn');
   const restartBtn = document.getElementById('restart-btn');
 
   // Config
-  const COLS = 32;
-  const ROWS = 32;
+  const COLS = 45; // ~40% larger than 32
+  const ROWS = 45;
   let TILE = canvas.width / COLS;
   const BG1 = '#0f1327';
   const BG2 = '#0c1022';
-  const SNAKE = '#5dd693';
-  const SNAKE_HEAD = '#8bf0b3';
+  const SNAKE1 = '#5dd693';
+  const SNAKE1_HEAD = '#8bf0b3';
+  const SNAKE2 = '#60a5fa';
+  const SNAKE2_HEAD = '#93c5fd';
   const RAT = '#ffd166';
   const GRID = 'rgba(255,255,255,0.04)';
 
   // State
-  let snake = [];
-  let dir = { x: 1, y: 0 };
-  let nextDir = { x: 1, y: 0 };
-  let rat = { x: 10, y: 10 };
+  let mode = 'single'; // single | two
+  let snake1 = [];
+  let snake2 = [];
+  let dir1 = { x: 1, y: 0 };
+  let dir2 = { x: -1, y: 0 };
+  let nextDir1 = { x: 1, y: 0 };
+  let nextDir2 = { x: -1, y: 0 };
+  let rats = [];
   let score = 0;
   let best = Number(localStorage.getItem('svr_best') || 0);
   let state = 'init'; // init | running | paused | over
   let lastStep = 0;
   let stepInterval = 110; // ms per step; speeds up on eat
+
+  // WS for two-player host
+  let ws = null; let sessionCode = null;
 
   bestEl.textContent = best;
 
@@ -45,20 +63,29 @@
 
   function posEq(a, b) { return a.x === b.x && a.y === b.y; }
 
-  function placeRat() {
-    while (true) {
+  function placeRats(n) {
+    rats = [];
+    while (rats.length < n) {
       const p = { x: randInt(0, COLS - 1), y: randInt(0, ROWS - 1) };
-      if (!snake.some(s => posEq(s, p))) { rat = p; return; }
+      const occupied = snake1.concat(snake2).some(s => posEq(s, p)) || rats.some(r => posEq(r, p));
+      if (!occupied) rats.push(p);
     }
   }
 
   function reset() {
-    snake = [ { x: Math.floor(COLS/2), y: Math.floor(ROWS/2) } ];
-    dir = { x: 1, y: 0 };
-    nextDir = { x: 1, y: 0 };
+    if (mode === 'single') {
+      snake1 = [ { x: Math.floor(COLS/2), y: Math.floor(ROWS/2) } ];
+      dir1 = { x: 1, y: 0 }; nextDir1 = { x: 1, y: 0 };
+      snake2 = [];
+    } else {
+      snake1 = [ { x: 2, y: 2 } ];
+      dir1 = { x: 1, y: 0 }; nextDir1 = { x: 1, y: 0 };
+      snake2 = [ { x: COLS-3, y: ROWS-3 } ];
+      dir2 = { x: -1, y: 0 }; nextDir2 = { x: -1, y: 0 };
+    }
     score = 0;
     stepInterval = 110;
-    placeRat();
+    placeRats(3); // always 3 rats
     scoreEl.textContent = score;
   }
 
@@ -93,19 +120,25 @@
     if (k === 'r') { e.preventDefault(); start(); return; }
     if (state !== 'running') return;
 
-    if (k === 'arrowup' || k === 'w') setNextDir(0, -1);
-    else if (k === 'arrowdown' || k === 's') setNextDir(0, 1);
-    else if (k === 'arrowleft' || k === 'a') setNextDir(-1, 0);
-    else if (k === 'arrowright' || k === 'd') setNextDir(1, 0);
+    if (k === 'arrowup' || k === 'w') setNextDir(1, 0, -1);
+    else if (k === 'arrowdown' || k === 's') setNextDir(1, 0, 1);
+    else if (k === 'arrowleft' || k === 'a') setNextDir(1, -1, 0);
+    else if (k === 'arrowright' || k === 'd') setNextDir(1, 1, 0);
   });
 
-  function setNextDir(x, y) {
-    // Prevent reversing directly into self
-    if (snake.length > 1 && dir.x === -x && dir.y === -y) return;
-    nextDir = { x, y };
+  function setNextDir(player, x, y) {
+    if (player === 1) {
+      if (snake1.length > 1 && dir1.x === -x && dir1.y === -y) return;
+      nextDir1 = { x, y };
+    } else {
+      if (snake2.length > 1 && dir2.x === -x && dir2.y === -y) return;
+      nextDir2 = { x, y };
+    }
   }
 
   startBtn.addEventListener('click', start);
+  singleBtn?.addEventListener('click', () => { mode = 'single'; start(); });
+  twoBtn?.addEventListener('click', async () => { mode = 'two'; setupTwoPlayer(); });
   pauseBtn.addEventListener('click', () => { if (state !== 'init') pauseToggle(); });
   restartBtn.addEventListener('click', start);
 
@@ -122,31 +155,48 @@
   }
 
   function step() {
-    dir = nextDir;
-    const head = snake[0];
-    const nx = head.x + dir.x;
-    const ny = head.y + dir.y;
-
-    // Wall collision (inside a box)
-    if (nx < 0 || ny < 0 || nx >= COLS || ny >= ROWS) { gameOver(); return; }
-
-    const nextHead = { x: nx, y: ny };
-
-    // Self-collision
-    if (snake.some(seg => posEq(seg, nextHead))) { gameOver(); return; }
-
-    // Move
-    snake.unshift(nextHead);
-
-    // Eat rat?
-    if (posEq(nextHead, rat)) {
-      score = snake.length - 1; // base on growth
-      scoreEl.textContent = score;
-      // Slight speed-up, clamp to minimum interval
-      stepInterval = Math.max(55, stepInterval - 3);
-      placeRat();
+    if (mode === 'single') {
+      dir1 = nextDir1;
+      const head = snake1[0];
+      const nx = head.x + dir1.x;
+      const ny = head.y + dir1.y;
+      if (nx < 0 || ny < 0 || nx >= COLS || ny >= ROWS) { gameOver(); return; }
+      const nextHead = { x: nx, y: ny };
+      if (snake1.some(seg => posEq(seg, nextHead))) { gameOver(); return; }
+      snake1.unshift(nextHead);
+      const ate = rats.findIndex(r => posEq(nextHead, r));
+      if (ate >= 0) {
+        score = snake1.length - 1; scoreEl.textContent = score;
+        stepInterval = Math.max(55, stepInterval - 3);
+        placeRats(3);
+      } else {
+        snake1.pop();
+      }
     } else {
-      snake.pop(); // maintain length
+      // two-player: advance both; check collisions
+      dir1 = nextDir1; dir2 = nextDir2;
+      const h1 = snake1[0]; const n1 = { x: h1.x + dir1.x, y: h1.y + dir1.y };
+      const h2 = snake2[0]; const n2 = { x: h2.x + dir2.x, y: h2.y + dir2.y };
+
+      // Wall
+      const out1 = n1.x < 0 || n1.y < 0 || n1.x >= COLS || n1.y >= ROWS;
+      const out2 = n2.x < 0 || n2.y < 0 || n2.x >= COLS || n2.y >= ROWS;
+      // Self or other collision
+      const hit1 = snake1.some(seg => posEq(seg, n1)) || snake2.some(seg => posEq(seg, n1));
+      const hit2 = snake2.some(seg => posEq(seg, n2)) || snake1.some(seg => posEq(seg, n2));
+
+      if (out1 || hit1) { showOverlay('Player 2 Wins!', 'Player 1 crashed. Press R to play again.'); state='over'; return; }
+      if (out2 || hit2) { showOverlay('Player 1 Wins!', 'Player 2 crashed. Press R to play again.'); state='over'; return; }
+
+      snake1.unshift(n1); snake2.unshift(n2);
+      let ate1 = rats.findIndex(r => posEq(n1, r));
+      let ate2 = rats.findIndex(r => posEq(n2, r));
+      if (ate1 >= 0 || ate2 >= 0) {
+        // replace eaten rats; can result in 3 again
+        placeRats(3);
+      } else {
+        snake1.pop(); snake2.pop();
+      }
     }
   }
 
@@ -164,31 +214,35 @@
     ctx.strokeRect(1, 1, canvas.width - 2, canvas.height - 2);
   }
 
-  function drawSnake() {
-    if (!snake.length) return;
-    for (let i = 0; i < snake.length; i++) {
-      const s = snake[i];
-      const x = s.x * TILE; const y = s.y * TILE;
-      const r = Math.floor(TILE * 0.22);
-      ctx.fillStyle = i === 0 ? SNAKE_HEAD : SNAKE;
-      roundRect(ctx, x+2, y+2, TILE-4, TILE-4, r);
-      ctx.fill();
-    }
+  function drawSnakes() {
+    const drawSnake = (arr, cBody, cHead) => {
+      if (!arr.length) return;
+      for (let i = 0; i < arr.length; i++) {
+        const s = arr[i];
+        const x = s.x * TILE; const y = s.y * TILE;
+        const r = Math.floor(TILE * 0.22);
+        ctx.fillStyle = i === 0 ? cHead : cBody;
+        roundRect(ctx, x+2, y+2, TILE-4, TILE-4, r);
+        ctx.fill();
+      }
+    };
+    drawSnake(snake1, SNAKE1, SNAKE1_HEAD);
+    drawSnake(snake2, SNAKE2, SNAKE2_HEAD);
   }
 
-  function drawRat() {
-    const x = rat.x * TILE; const y = rat.y * TILE;
-    // Rat body as rounded square
-    ctx.fillStyle = RAT;
-    roundRect(ctx, x+6, y+6, TILE-12, TILE-12, Math.floor(TILE * 0.25));
-    ctx.fill();
-    // Tail
-    ctx.strokeStyle = '#ffb703';
-    ctx.lineWidth = 2;
-    ctx.beginPath();
-    ctx.moveTo(x + TILE - 10, y + TILE/2);
-    ctx.quadraticCurveTo(x + TILE - 2, y + TILE/2 - 6, x + TILE - 2, y + TILE/2);
-    ctx.stroke();
+  function drawRats() {
+    for (const rat of rats) {
+      const x = rat.x * TILE; const y = rat.y * TILE;
+      ctx.fillStyle = RAT;
+      roundRect(ctx, x+6, y+6, TILE-12, TILE-12, Math.floor(TILE * 0.25));
+      ctx.fill();
+      ctx.strokeStyle = '#ffb703';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(x + TILE - 10, y + TILE/2);
+      ctx.quadraticCurveTo(x + TILE - 2, y + TILE/2 - 6, x + TILE - 2, y + TILE/2);
+      ctx.stroke();
+    }
   }
 
   function roundRect(ctx, x, y, w, h, r) {
@@ -208,8 +262,8 @@
     // Clear full canvas
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     drawGrid();
-    drawRat();
-    drawSnake();
+    drawRats();
+    drawSnakes();
   }
 
   function fitCanvasToDisplay() {
@@ -229,4 +283,35 @@
 
   // Initial overlay visible; start loop
   requestAnimationFrame(tick);
+
+  // Two-player host setup
+  function setupTwoPlayer() {
+    modeSelect.classList.add('hide');
+    twoSetup.classList.remove('hide');
+    titleEl.textContent = 'Two Player Setup';
+    subEl.textContent = 'Connect two phones as controllers and tap Ready.';
+    const proto = location.protocol === 'https:' ? 'wss' : 'ws';
+    const wsUrl = `${proto}://${location.host}/ws`;
+    ws = new WebSocket(wsUrl);
+    ws.onopen = () => {
+      ws.send(JSON.stringify({ type: 'create_session' }));
+    };
+    ws.onmessage = (ev) => {
+      const msg = JSON.parse(ev.data);
+      if (msg.type === 'session_created') {
+        sessionCode = msg.code; sessCodeEl.textContent = sessionCode;
+        joinUrlEl.textContent = location.origin + '/controller.html';
+      } else if (msg.type === 'status') {
+        p1StatusEl.textContent = `P1: ${msg.present.p1 ? (msg.ready.p1 ? 'ready' : 'connected') : 'not connected'}`;
+        p2StatusEl.textContent = `P2: ${msg.present.p2 ? (msg.ready.p2 ? 'ready' : 'connected') : 'not connected'}`;
+      } else if (msg.type === 'both_ready') {
+        waitReadyBtn.textContent = 'Both ready! Starting…';
+        setTimeout(() => start(), 800);
+      } else if (msg.type === 'dir') {
+        const d = msg.dir;
+        if (msg.player === 'p1') setNextDir(1, d.x, d.y);
+        else if (msg.player === 'p2') setNextDir(2, d.x, d.y);
+      }
+    };
+  }
 })();

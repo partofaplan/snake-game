@@ -10,7 +10,7 @@ set -euo pipefail
 
 # Image to deploy. Default uses your Docker Hub repo/tag.
 # Override with IMAGE=... to use a different registry (e.g., gcr.io/PROJECT/SERVICE:tag)
-: "${IMAGE:=docker.io/partofaplan/snake-game:1.0-amd64}"
+: "${IMAGE:=docker.io/partofaplan/snake-game:2.0-amd64}"
 
 if [[ "$IMAGE" == gcr.io/* || "$IMAGE" == *.pkg.dev/* ]]; then
   echo "Building ${IMAGE} via Cloud Build..."
