@@ -9,7 +9,7 @@ on:
   workflow_dispatch: {}
 
 env:
-  SERVICE: ${{ secrets.GCP_SERVICE }}
+  SERVICE: snake-game
   PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
   REGION: ${{ secrets.GCP_REGION }}
   IMAGE: docker.io/${{ secrets.DOCKER_USERNAME }}/${{ github.event.repository.name }}:latest
