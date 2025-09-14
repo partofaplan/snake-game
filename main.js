@@ -13,6 +13,8 @@
   const startBtn = document.getElementById('start-btn');
   const pauseBtn = document.getElementById('pause-btn');
   const restartBtn = document.getElementById('restart-btn');
+  const nameInput = document.getElementById('player-name');
+  const lbList = document.getElementById('leaderboard-list');
 
   // Config
   const COLS = 32;
@@ -35,8 +37,13 @@
   let state = 'init'; // init | running | paused | over
   let lastStep = 0;
   let stepInterval = 110; // ms per step; speeds up on eat
+  let playerName = localStorage.getItem('svr_player_name') || '';
+  let leaderboard = [];
 
   bestEl.textContent = best;
+  if (nameInput) nameInput.value = playerName;
+  loadLeaderboard();
+  renderLeaderboard();
 
   // Helpers
   function randInt(min, max) { // inclusive
@@ -63,6 +70,13 @@
   }
 
   function start() {
+    // Capture and persist name
+    if (nameInput) {
+      playerName = (nameInput.value || '').trim();
+      if (!playerName) playerName = 'Anonymous';
+      if (playerName.length > 20) playerName = playerName.slice(0, 20);
+      localStorage.setItem('svr_player_name', playerName);
+    }
     reset();
     state = 'running';
     overlay.classList.add('hide');
@@ -77,6 +91,11 @@
   function gameOver() {
     state = 'over';
     if (score > best) { best = score; localStorage.setItem('svr_best', String(best)); bestEl.textContent = best; }
+    // Save score to leaderboard if > 0
+    if (score > 0) {
+      addToLeaderboard({ name: playerName || 'Anonymous', score, ts: Date.now() });
+      renderLeaderboard();
+    }
     showOverlay('Game Over', `Final length: ${snake.length}. Press R to retry.`);
   }
 
@@ -108,6 +127,44 @@
   startBtn.addEventListener('click', start);
   pauseBtn.addEventListener('click', () => { if (state !== 'init') pauseToggle(); });
   restartBtn.addEventListener('click', start);
+
+  // Leaderboard helpers
+  function loadLeaderboard() {
+    try {
+      const raw = localStorage.getItem('svr_leaderboard');
+      leaderboard = raw ? JSON.parse(raw) : [];
+      if (!Array.isArray(leaderboard)) leaderboard = [];
+    } catch {
+      leaderboard = [];
+    }
+  }
+
+  function saveLeaderboard() {
+    try { localStorage.setItem('svr_leaderboard', JSON.stringify(leaderboard)); } catch {}
+  }
+
+  function addToLeaderboard(entry) {
+    leaderboard.push(entry);
+    // Sort by score desc, then earlier timestamp first to keep stable order for ties
+    leaderboard.sort((a, b) => b.score - a.score || a.ts - b.ts);
+    // Keep a reasonable cap
+    if (leaderboard.length > 100) leaderboard.length = 100;
+    saveLeaderboard();
+  }
+
+  function renderLeaderboard() {
+    if (!lbList) return;
+    // Ensure we only render top 5
+    const top = [...leaderboard].sort((a, b) => b.score - a.score || a.ts - b.ts).slice(0, 5);
+    if (top.length === 0) {
+      lbList.innerHTML = '<li><span class="lb-name">No scores yet</span><span class="lb-score">—</span></li>';
+      return;
+    }
+    lbList.innerHTML = top.map(e => {
+      const safeName = (e.name || 'Anonymous').toString().slice(0, 20).replace(/[<>]/g, '');
+      return `<li><span class="lb-name">${safeName}</span><span class="lb-score">${e.score}</span></li>`;
+    }).join('');
+  }
 
   // Game loop
   function tick(dt) {
