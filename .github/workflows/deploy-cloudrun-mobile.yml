@@ -1,5 +1,6 @@
 name: Deploy to Cloud Run (mobile)
 
+# Monitor the "Build Docker Image for Mobile (latest)" workflow and trigger this deployment workflow upon its successful completion.
 on:
   workflow_run:
     workflows: ["Build Docker Image for Mobile (latest)"]
