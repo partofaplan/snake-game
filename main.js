@@ -39,10 +39,11 @@
   let stepInterval = 130; // ms per step; starts slightly slower; speeds up on eat
   let playerName = localStorage.getItem('svr_player_name') || '';
   let leaderboard = [];
+  const SESSION = new URLSearchParams(location.search).get('session') || 'default';
 
   bestEl.textContent = best;
   if (nameInput) nameInput.value = playerName;
-  loadLeaderboard();
+  initRealtimeLeaderboard();
   renderLeaderboard();
 
   // Helpers
@@ -129,27 +130,40 @@
   restartBtn.addEventListener('click', start);
 
   // Leaderboard helpers
-  function loadLeaderboard() {
+  async function loadLeaderboard() {
     try {
-      const raw = localStorage.getItem('svr_leaderboard');
-      leaderboard = raw ? JSON.parse(raw) : [];
-      if (!Array.isArray(leaderboard)) leaderboard = [];
+      const res = await fetch(`/api/leaderboard?session=${encodeURIComponent(SESSION)}`);
+      const data = await res.json();
+      if (Array.isArray(data.leaderboard)) leaderboard = data.leaderboard;
+      else leaderboard = [];
     } catch {
-      leaderboard = [];
+      // Fallback to local if API not available
+      try {
+        const raw = localStorage.getItem('svr_leaderboard');
+        leaderboard = raw ? JSON.parse(raw) : [];
+        if (!Array.isArray(leaderboard)) leaderboard = [];
+      } catch { leaderboard = []; }
     }
   }
 
   function saveLeaderboard() {
+    // Retain local fallback cache only
     try { localStorage.setItem('svr_leaderboard', JSON.stringify(leaderboard)); } catch {}
   }
 
-  function addToLeaderboard(entry) {
-    leaderboard.push(entry);
-    // Sort by score desc, then earlier timestamp first to keep stable order for ties
-    leaderboard.sort((a, b) => b.score - a.score || a.ts - b.ts);
-    // Keep a reasonable cap
-    if (leaderboard.length > 100) leaderboard.length = 100;
-    saveLeaderboard();
+  async function addToLeaderboard(entry) {
+    const payload = { name: entry.name, score: entry.score, ts: entry.ts, session: SESSION };
+    try {
+      await fetch('/api/score', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload)
+      });
+    } catch {
+      // Fallback local update if server not reachable
+      leaderboard.push(entry);
+      leaderboard.sort((a, b) => b.score - a.score || a.ts - b.ts);
+      if (leaderboard.length > 100) leaderboard.length = 100;
+      saveLeaderboard();
+    }
   }
 
   function renderLeaderboard() {
@@ -164,6 +178,27 @@
       const safeName = (e.name || 'Anonymous').toString().slice(0, 20).replace(/[<>]/g, '');
       return `<li><span class="lb-name">${safeName}</span><span class="lb-score">${e.score}</span></li>`;
     }).join('');
+  }
+
+  function initRealtimeLeaderboard() {
+    // Initial load
+    loadLeaderboard().then(renderLeaderboard);
+    // Subscribe via SSE
+    if ('EventSource' in window) {
+      try {
+        const es = new EventSource(`/api/stream?session=${encodeURIComponent(SESSION)}`);
+        es.addEventListener('leaderboard', (evt) => {
+          try {
+            const data = JSON.parse(evt.data || '{}');
+            if (Array.isArray(data.leaderboard)) {
+              leaderboard = data.leaderboard;
+              saveLeaderboard();
+              renderLeaderboard();
+            }
+          } catch {}
+        });
+      } catch {}
+    }
   }
 
   // Game loop
