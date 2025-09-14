@@ -1,9 +1,8 @@
-name: Deploy to Cloud Run
+name: Deploy to Cloud Run (mobile)
 
 on:
   workflow_run:
     workflows: ["Build Docker Image for Mobile (latest)"]
-    branches: [ project/mobile ]
     types:
       - completed
   workflow_dispatch: {}
@@ -16,7 +15,7 @@ env:
 
 jobs:
   deploy:
-    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    if: ${{ github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'project/mobile' }}
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -40,7 +39,7 @@ jobs:
             --region "$REGION" \
             --platform managed \
             --allow-unauthenticated \
-            --port 3000 \
+            --port 8080 \
             --cpu 1 --memory 512Mi \
             --concurrency 500 \
             --timeout 3600 \
