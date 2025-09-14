@@ -1,5 +1,4 @@
 name: Build Docker Image (latest)
-
 on:
   push:
     branches: [ main ]
