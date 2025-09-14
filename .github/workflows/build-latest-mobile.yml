@@ -1,4 +1,4 @@
-name: Build Docker Image (latest)
+name: Build Docker Image for Mobile (latest)
 on:
   push:
     branches: [ project/mobile ]

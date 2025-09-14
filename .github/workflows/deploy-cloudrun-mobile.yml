@@ -2,7 +2,7 @@ name: Deploy to Cloud Run
 
 on:
   workflow_run:
-    workflows: ["Build Docker Image (latest)"]
+    workflows: ["Build Docker Image for Mobile (latest)"]
     branches: [ project/mobile ]
     types:
       - completed
