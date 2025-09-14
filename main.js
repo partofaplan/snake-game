@@ -36,7 +36,7 @@
   let best = Number(localStorage.getItem('svr_best') || 0);
   let state = 'init'; // init | running | paused | over
   let lastStep = 0;
-  let stepInterval = 110; // ms per step; speeds up on eat
+  let stepInterval = 130; // ms per step; starts slightly slower; speeds up on eat
   let playerName = localStorage.getItem('svr_player_name') || '';
   let leaderboard = [];
 
@@ -64,7 +64,7 @@
     dir = { x: 1, y: 0 };
     nextDir = { x: 1, y: 0 };
     score = 0;
-    stepInterval = 110;
+    stepInterval = 130;
     placeRat();
     scoreEl.textContent = score;
   }
