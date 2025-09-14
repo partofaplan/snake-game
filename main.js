@@ -129,6 +129,54 @@
   pauseBtn.addEventListener('click', () => { if (state !== 'init') pauseToggle(); });
   restartBtn.addEventListener('click', start);
 
+  // Touch and mobile controls
+  const dpad = document.getElementById('dpad');
+  const btnUp = document.getElementById('btn-up');
+  const btnDown = document.getElementById('btn-down');
+  const btnLeft = document.getElementById('btn-left');
+  const btnRight = document.getElementById('btn-right');
+
+  function bindButton(btn, x, y) {
+    if (!btn) return;
+    const handler = (e) => { e.preventDefault(); if (state === 'running') setNextDir(x, y); };
+    btn.addEventListener('click', handler, { passive: false });
+    btn.addEventListener('pointerdown', handler, { passive: false });
+    btn.addEventListener('touchstart', handler, { passive: false });
+  }
+  bindButton(btnUp, 0, -1);
+  bindButton(btnDown, 0, 1);
+  bindButton(btnLeft, -1, 0);
+  bindButton(btnRight, 1, 0);
+
+  // Swipe on canvas
+  let startX = 0, startY = 0, didSwipe = false;
+  function onStart(e) {
+    const p = ('touches' in e && e.touches[0]) ? e.touches[0] : e;
+    startX = p.clientX; startY = p.clientY; didSwipe = false;
+  }
+  function onMove(e) {
+    if (state !== 'running' || didSwipe) return;
+    const p = ('touches' in e && e.touches[0]) ? e.touches[0] : e;
+    const dx = p.clientX - startX; const dy = p.clientY - startY;
+    const threshold = 18; // px
+    if (Math.abs(dx) < threshold && Math.abs(dy) < threshold) return;
+    if (Math.abs(dx) > Math.abs(dy)) {
+      setNextDir(dx > 0 ? 1 : -1, 0);
+    } else {
+      setNextDir(0, dy > 0 ? 1 : -1);
+    }
+    didSwipe = true;
+    e.preventDefault();
+  }
+  function onEnd() { didSwipe = false; }
+
+  canvas.addEventListener('pointerdown', onStart, { passive: true });
+  canvas.addEventListener('pointermove', onMove, { passive: false });
+  canvas.addEventListener('pointerup', onEnd, { passive: true });
+  canvas.addEventListener('touchstart', onStart, { passive: true });
+  canvas.addEventListener('touchmove', onMove, { passive: false });
+  canvas.addEventListener('touchend', onEnd, { passive: true });
+
   // Leaderboard helpers
   async function loadLeaderboard() {
     try {

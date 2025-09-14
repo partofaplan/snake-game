@@ -11,6 +11,8 @@ COPY index.html ./
 COPY style.css ./
 COPY main.js ./
 COPY server.js ./
+COPY manifest.webmanifest ./
+COPY service-worker.js ./
 
 # Default port for Cloud Run
 ENV PORT=8080

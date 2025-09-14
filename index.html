@@ -4,6 +4,8 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Snake vs Rats</title>
+    <meta name="theme-color" content="#0f1327" />
+    <link rel="manifest" href="/manifest.webmanifest">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
@@ -30,12 +32,20 @@
               <input type="text" id="player-name" placeholder="Enter your name" maxlength="20" />
             </div>
             <ul class="help">
-              <li>Move: Arrow Keys / WASD</li>
+              <li>Move: Arrow Keys / WASD or swipe / d‑pad</li>
               <li>Pause/Resume: Space</li>
               <li>Restart: R</li>
             </ul>
             <button id="start-btn" class="btn">Start</button>
           </div>
+        </div>
+        <div id="dpad" class="dpad" aria-label="Touch controls" role="group">
+          <button id="btn-up" class="dpad-btn up" aria-label="Up">▲</button>
+          <div class="middle">
+            <button id="btn-left" class="dpad-btn left" aria-label="Left">◀</button>
+            <button id="btn-right" class="dpad-btn right" aria-label="Right">▶</button>
+          </div>
+          <button id="btn-down" class="dpad-btn down" aria-label="Down">▼</button>
         </div>
       </main>
 
@@ -53,6 +63,13 @@
       </footer>
     </div>
 
+    <script>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('/service-worker.js').catch(() => {});
+        });
+      }
+    </script>
     <script src="main.js"></script>
   </body>
   </html>

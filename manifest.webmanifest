@@ -1,0 +1,10 @@
+{
+  "name": "Snake vs Rats",
+  "short_name": "Snake",
+  "start_url": "/?session=default",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#0f1220",
+  "theme_color": "#0f1327",
+  "icons": []
+}
