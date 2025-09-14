@@ -2,9 +2,13 @@
   "name": "snake-game",
   "version": "1.0.0",
   "private": true,
-  "description": "Static Snake game with a simple dev server",
+  "description": "Snake game with realtime leaderboard",
   "license": "UNLICENSED",
   "scripts": {
-    "dev": "npm exec -y -- http-server -p ${PORT:-5173} -c -1 ."
+    "dev": "node server.js",
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.19.2"
   }
 }
