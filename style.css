@@ -131,45 +131,9 @@ h1 {
 .lb-name { opacity: 0.95; }
 .lb-score { color: var(--accent-2); font-weight: 700; }
 
-/* Mobile d-pad */
-.dpad {
-  position: sticky;
-  bottom: 12px;
-  display: grid;
-  grid-template-rows: auto auto auto;
-  align-items: center;
-  justify-items: center;
-  gap: 8px;
-  margin-top: 16px;
-  user-select: none;
-  -webkit-user-select: none;
-  z-index: 1;
-}
-.dpad .middle {
-  display: grid;
-  grid-template-columns: auto auto;
-  gap: 32px;
-}
-.dpad-btn {
-  width: 64px;
-  height: 64px;
-  border-radius: 12px;
-  border: 1px solid rgba(255,255,255,0.15);
-  background: rgba(255,255,255,0.06);
-  color: #e4e7f0;
-  font-size: 24px;
-  line-height: 1;
-  display: grid;
-  place-items: center;
-  box-shadow: inset 0 1px 0 rgba(255,255,255,0.06);
-  touch-action: manipulation;
-}
-.dpad-btn:active { background: rgba(255,255,255,0.12); }
-
 @media (max-width: 720px) {
   .bar h1 { font-size: 18px; }
   .stats .stat { font-size: 14px; }
   .panel { padding: 16px; }
   .btn { padding: 10px 14px; font-size: 14px; }
-  .dpad-btn { width: 56px; height: 56px; font-size: 20px; }
 }

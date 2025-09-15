@@ -1,4 +1,4 @@
-const CACHE = 'snake-cache-v1';
+const CACHE = 'snake-cache-v2';
 const ASSETS = [
   '/',
   '/index.html',
@@ -38,4 +38,3 @@ self.addEventListener('fetch', (e) => {
     })
   );
 });
-
