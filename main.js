@@ -82,13 +82,11 @@
     state = 'running';
     overlay.classList.add('hide');
     pauseBtn.textContent = 'Pause';
-    refreshControlsVisibility();
   }
 
   function pauseToggle() {
     if (state === 'running') { state = 'paused'; pauseBtn.textContent = 'Resume'; showOverlay('Paused', 'Press Space to resume.'); }
     else if (state === 'paused') { state = 'running'; overlay.classList.add('hide'); pauseBtn.textContent = 'Pause'; }
-    refreshControlsVisibility();
   }
 
   function gameOver() {
@@ -100,14 +98,12 @@
       renderLeaderboard();
     }
     showOverlay('Game Over', `Final length: ${snake.length}. Press R to retry.`);
-    refreshControlsVisibility();
   }
 
   function showOverlay(title, sub) {
     titleEl.textContent = title;
     subEl.textContent = sub;
     overlay.classList.remove('hide');
-    refreshControlsVisibility();
   }
 
   // Input
@@ -133,24 +129,7 @@
   pauseBtn.addEventListener('click', () => { if (state !== 'init') pauseToggle(); });
   restartBtn.addEventListener('click', start);
 
-  // Touch and mobile controls
-  const dpad = document.getElementById('dpad');
-  const btnUp = document.getElementById('btn-up');
-  const btnDown = document.getElementById('btn-down');
-  const btnLeft = document.getElementById('btn-left');
-  const btnRight = document.getElementById('btn-right');
-
-  function bindButton(btn, x, y) {
-    if (!btn) return;
-    const handler = (e) => { e.preventDefault(); if (state === 'running') setNextDir(x, y); };
-    btn.addEventListener('click', handler, { passive: false });
-    btn.addEventListener('pointerdown', handler, { passive: false });
-    btn.addEventListener('touchstart', handler, { passive: false });
-  }
-  bindButton(btnUp, 0, -1);
-  bindButton(btnDown, 0, 1);
-  bindButton(btnLeft, -1, 0);
-  bindButton(btnRight, 1, 0);
+  // Touch and mobile controls (swipe only)
 
   // Swipe on canvas
   let startX = 0, startY = 0, didSwipe = false;
@@ -181,13 +160,7 @@
   canvas.addEventListener('touchmove', onMove, { passive: false });
   canvas.addEventListener('touchend', onEnd, { passive: true });
 
-  // Ensure d-pad only active during gameplay
-  function refreshControlsVisibility() {
-    if (!dpad) return;
-    dpad.classList.toggle('hide', state !== 'running');
-  }
-  // Initial state (overlay visible)
-  refreshControlsVisibility();
+  // No d-pad; swipe controls are always available during gameplay
 
   // Leaderboard helpers
   async function loadLeaderboard() {

@@ -51,8 +51,8 @@ h1 {
 }
 
 #board {
-  width: min(90vw, 640px);
-  height: min(90vw, 640px);
+  width: min(96vw, 720px);
+  height: min(96vw, 720px);
   background: linear-gradient(0deg, #111426, #0d1020);
   border: 2px solid #242845;
   border-radius: 8px;
@@ -92,6 +92,7 @@ h1 {
   border: 1px solid #2a2f52;
   border-radius: 8px;
   padding: 10px 12px;
+  font-size: 18px; /* prevent iOS zoom on focus */
   outline: none;
 }
 #player-name:focus { border-color: #3a3f6a; box-shadow: 0 0 0 2px rgba(93,214,147,0.2); }
