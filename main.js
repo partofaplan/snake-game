@@ -82,11 +82,13 @@
     state = 'running';
     overlay.classList.add('hide');
     pauseBtn.textContent = 'Pause';
+    refreshControlsVisibility();
   }
 
   function pauseToggle() {
     if (state === 'running') { state = 'paused'; pauseBtn.textContent = 'Resume'; showOverlay('Paused', 'Press Space to resume.'); }
     else if (state === 'paused') { state = 'running'; overlay.classList.add('hide'); pauseBtn.textContent = 'Pause'; }
+    refreshControlsVisibility();
   }
 
   function gameOver() {
@@ -98,12 +100,14 @@
       renderLeaderboard();
     }
     showOverlay('Game Over', `Final length: ${snake.length}. Press R to retry.`);
+    refreshControlsVisibility();
   }
 
   function showOverlay(title, sub) {
     titleEl.textContent = title;
     subEl.textContent = sub;
     overlay.classList.remove('hide');
+    refreshControlsVisibility();
   }
 
   // Input
@@ -176,6 +180,14 @@
   canvas.addEventListener('touchstart', onStart, { passive: true });
   canvas.addEventListener('touchmove', onMove, { passive: false });
   canvas.addEventListener('touchend', onEnd, { passive: true });
+
+  // Ensure d-pad only active during gameplay
+  function refreshControlsVisibility() {
+    if (!dpad) return;
+    dpad.classList.toggle('hide', state !== 'running');
+  }
+  // Initial state (overlay visible)
+  refreshControlsVisibility();
 
   // Leaderboard helpers
   async function loadLeaderboard() {
