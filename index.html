@@ -20,29 +20,30 @@
       </header>
 
       <main class="game">
-        <canvas id="board" width="640" height="640" aria-label="Game board" role="img"></canvas>
-        <div class="overlay" id="overlay">
-          <div class="panel" id="panel">
-            <h2 id="state-title">Snake vs Rats</h2>
-            <p id="state-sub">Eat rats to grow. Don’t hit yourself or the wall.</p>
-            <div class="name-entry" id="name-entry">
-              <label for="player-name" class="label">Player Name</label>
-              <input type="text" id="player-name" placeholder="Enter your name" maxlength="20" />
+        <section class="panel" id="leaderboard-panel" aria-label="Leaderboard">
+          <h2 style="margin-top: 0;">Top 5</h2>
+          <ol id="leaderboard-list" class="lb-list"></ol>
+        </section>
+        <div class="board-wrap">
+          <canvas id="board" width="640" height="640" aria-label="Game board" role="img"></canvas>
+          <div class="overlay" id="overlay">
+            <div class="panel" id="panel">
+              <h2 id="state-title">Snake vs Rats</h2>
+              <p id="state-sub">Eat rats to grow. Don’t hit yourself or the wall.</p>
+              <div class="name-entry" id="name-entry">
+                <label for="player-name" class="label">Player Name</label>
+                <input type="text" id="player-name" placeholder="Enter your name" maxlength="20" />
+              </div>
+              <ul class="help">
+                <li>Move: Arrow Keys / WASD</li>
+                <li>Pause/Resume: Space</li>
+                <li>Restart: R</li>
+              </ul>
+              <button id="start-btn" class="btn">Start</button>
             </div>
-            <ul class="help">
-              <li>Move: Arrow Keys / WASD</li>
-              <li>Pause/Resume: Space</li>
-              <li>Restart: R</li>
-            </ul>
-            <button id="start-btn" class="btn">Start</button>
           </div>
         </div>
       </main>
-
-      <section class="panel" id="leaderboard-panel" aria-label="Leaderboard">
-        <h2 style="margin-top: 0;">Top 5</h2>
-        <ol id="leaderboard-list" class="lb-list"></ol>
-      </section>
 
       <footer class="bar foot">
         <span>Have fun! 🐍🐀</span>
